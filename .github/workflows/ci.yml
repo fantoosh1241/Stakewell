@@ -86,6 +86,9 @@ jobs:
       - name: Type Check
         run: npm run typecheck
 
+      - name: Unit Tests
+        run: npm run test
+
       - name: Build (static export)
         run: npm run build
         env:
