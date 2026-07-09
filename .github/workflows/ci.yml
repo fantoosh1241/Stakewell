@@ -31,10 +31,14 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Install Stellar CLI
+        env:
+          # Pinned instead of resolved from the GitHub API "latest release" endpoint —
+          # that endpoint is unauthenticated here and rate-limits easily, which was
+          # silently producing an empty $VERSION and a corrupt download (tar: not in
+          # gzip format). Bump this deliberately when a newer CLI is needed.
+          STELLAR_CLI_VERSION: "26.0.0"
         run: |
-          VERSION=$(curl -s https://api.github.com/repos/stellar/stellar-cli/releases/latest | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
-          echo "Installing Stellar CLI v${VERSION}"
-          curl -sL "https://github.com/stellar/stellar-cli/releases/download/v${VERSION}/stellar-cli-${VERSION}-x86_64-unknown-linux-gnu.tar.gz" -o stellar.tar.gz
+          curl -sL "https://github.com/stellar/stellar-cli/releases/download/v${STELLAR_CLI_VERSION}/stellar-cli-${STELLAR_CLI_VERSION}-x86_64-unknown-linux-gnu.tar.gz" -o stellar.tar.gz
           tar -xzf stellar.tar.gz
           mv stellar /usr/local/bin/stellar
           stellar --version
@@ -117,9 +121,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Stellar CLI
+        env:
+          STELLAR_CLI_VERSION: "26.0.0"
         run: |
-          VERSION=$(curl -s https://api.github.com/repos/stellar/stellar-cli/releases/latest | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
-          curl -sL "https://github.com/stellar/stellar-cli/releases/download/v${VERSION}/stellar-cli-${VERSION}-x86_64-unknown-linux-gnu.tar.gz" -o stellar.tar.gz
+          curl -sL "https://github.com/stellar/stellar-cli/releases/download/v${STELLAR_CLI_VERSION}/stellar-cli-${STELLAR_CLI_VERSION}-x86_64-unknown-linux-gnu.tar.gz" -o stellar.tar.gz
           tar -xzf stellar.tar.gz
           mv stellar /usr/local/bin/stellar
 
