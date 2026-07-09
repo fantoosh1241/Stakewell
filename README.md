@@ -4,7 +4,7 @@
 ![Stellar Testnet](https://img.shields.io/badge/Stellar-Testnet-blue?logo=stellar)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-**Live Demo:** [Placeholder for Live Demo URL]
+**Live Demo:** PENDING — Cloudflare Pages deploy requires a human to authenticate (`CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` repo secrets or the dashboard Git integration); not something an agent can provision. Runs correctly locally (`npm run dev`) against the deployed testnet contracts below.
 
 
 > Stake native XLM on Stellar Soroban. Watch your RWD rewards accrue in real time at 12% APY. Claim or unstake at any time. Three real on-chain smart contracts. No stubs, no simulations.
@@ -13,9 +13,9 @@
 
 ## Project Description
 
-Stakewell is a production-grade Stellar Soroban dApp where users stake native XLM into a smart contract pool and earn RWD reward tokens, accruing continuously at a fixed 12% APY. The live rewards [...]
+Stakewell is a production-grade Stellar Soroban dApp where users stake native XLM into a smart contract pool and earn RWD reward tokens, accruing continuously at a fixed 12% APY. The live rewards ticker updates in real time client-side, seeded from the on-chain checkpointed value.
 
-The architecture uses three real Soroban smart contracts deployed on Stellar Testnet, two provable inter-contract call chains, a Next.js 14 static frontend with 3D animated UI, and a GitHub Action[...]
+The architecture uses three real Soroban smart contracts deployed on Stellar Testnet, two provable inter-contract call chains, a Next.js 14 static frontend, and a GitHub Actions CI/CD pipeline that tests, builds, and deploys on every push to `main`.
 
 ---
 
@@ -61,7 +61,7 @@ The architecture uses three real Soroban smart contracts deployed on Stellar Tes
 | Deployment | Cloudflare Pages (static export) |
 | CI/CD | GitHub Actions (4 jobs) |
 
-**Note on native XLM:** The staked asset is native XLM handled via the Stellar Asset Contract (SAC) interface. We deliberately do not write a redundant XLM token contract — the Staking contract [...]
+**Note on native XLM:** The staked asset is native XLM handled via the Stellar Asset Contract (SAC) interface. We deliberately do not write a redundant XLM token contract — the Staking contract calls the SAC's `transfer` function directly to custody deposits and return withdrawals.
 
 ---
 
@@ -84,15 +84,15 @@ All addresses begin with `C` and are 56 characters — verified against the Stel
 
 **When:** Called on every `stake` and `unstake` invocation in the Staking contract.
 
-**Why:** Before any principal change, the Rewards contract must settle (checkpoint) the user's pending accrual against the *old* principal. `register_stake(user, new_total_principal)` computes ela[...]
+**Why:** Before any principal change, the Rewards contract must settle (checkpoint) the user's pending accrual against the *old* principal. `register_stake(user, new_total_principal)` computes elapsed-time accrual on the old principal, adds it to `accrued_unclaimed`, resets the checkpoint timestamp, then stores the new principal — so rewards are never lost across a stake/unstake.
 
-**Code location:** `contracts/staking/src/lib.rs` — `StakingContract::stake()` and `StakingContract::unstake()`, both call `rewards_contract::Client::new(&env, &config.rewards_contract).register[...]
+**Code location:** `contracts/staking/src/lib.rs` — `StakingContract::stake()` and `StakingContract::unstake()`, both call `rewards_contract::Client::new(&env, &config.rewards_contract).register_stake(&user, &new_principal)`.
 
 ### Rewards → Token: `mint`
 
 **When:** Called inside `claim_rewards` in the Rewards contract.
 
-**Why:** After settling the user's accrual and computing the total RWD owed, the Rewards contract calls `token_contract::Client::new(&env, &config.token_address).mint(&user, &total)` to actually t[...]
+**Why:** After settling the user's accrual and computing the total RWD owed, the Rewards contract calls `token_contract::Client::new(&env, &config.token_address).mint(&user, &total)` to actually transfer the reward tokens on-chain, then resets `accrued_unclaimed` to zero so it can't be paid twice.
 
 **Code location:** `contracts/rewards/src/lib.rs` — `RewardsContract::claim_rewards()`.
 
@@ -123,7 +123,7 @@ Wallet integration uses `@creit.tech/stellar-wallets-kit` v2.4.0 (static API, v2
 - `StellarWalletsKit.signTransaction(xdr, { networkPassphrase, address })` — signs without submitting
 - `StellarWalletsKit.disconnect()` — clears wallet state
 
-The connected address is truncated (`GABCD…XY12`) in the nav, with full address and XLM balance shown in the dropdown. Balance is polled via Horizon every 8 seconds and refreshed after every tr[...]
+The connected address is truncated (`GABCD…XY12`) in the nav, with full address and XLM balance shown in the dropdown. Balance is polled via Horizon every 8 seconds and refreshed immediately after every transaction confirms.
 
 ---
 
@@ -141,9 +141,9 @@ accrual = principal_stroops × apy_bps × elapsed_seconds
 - `elapsed_seconds` — seconds since last checkpoint
 - Result is in RWD stroops (7 decimal places)
 
-**Live ticker:** The frontend computes accrual client-side at ~60fps using `requestAnimationFrame`, seeded with the on-chain `accrued_rewards` value polled every 7 seconds via SWR. This gives a s[...]
+**Live ticker:** The frontend computes accrual client-side using `computeAccrual()` (`frontend/lib/contracts.ts`), seeded with the on-chain `accrued_rewards` value polled every 7 seconds via SWR. This gives a smoothly incrementing number between polls without ever drifting from the on-chain source of truth.
 
-**Checkpoint model:** Every stake/unstake settles the pending accrual *before* changing the principal. So rewards are never lost when principal changes — they accumulate in `accrued_unclaimed` [...]
+**Checkpoint model:** Every stake/unstake settles the pending accrual *before* changing the principal. So rewards are never lost when principal changes — they accumulate in `accrued_unclaimed` on the Rewards contract until the user calls `claim_rewards`.
 
 ---
 
@@ -170,7 +170,19 @@ Three distinct, clearly differentiated error states are handled:
 
 ## Screenshots
 
-[Placeholder for Screenshots and Demo Videos]
+| Wallet not connected (desktop) | Mobile responsive (375px) |
+|---|---|
+| ![Dashboard, wallet disconnected](docs/screenshots/dashboard-desktop.png) | ![Mobile dashboard](docs/screenshots/dashboard-mobile-375px.png) |
+
+| CI/CD pipeline (real, green run) | Test output (real, local run) |
+|---|---|
+| ![CI pipeline passing](docs/screenshots/ci-pipeline-passing.png) | ![Test output](docs/screenshots/test-output.png) |
+
+CI screenshot is [run #3 on `main`](https://github.com/fantoosh1241/Stakewell/actions/runs/29043404392) — all 4 jobs green. The dashboard screenshots are captured from a real, locally running instance of this app (`npm run dev`) wired to the deployed testnet contracts above.
+
+**Demo Video (1–2 min):** PENDING — screen recording must be done by a human; an agent cannot produce one.
+
+**Still needed (manual, post-agent):** wallet-connected state and a live stake/claim/unstake flow screenshot — both require an actual Freighter-signed testnet transaction from a human's wallet, which an agent cannot do.
 
 ---
 
@@ -279,6 +291,23 @@ test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 | 8 | `test_transfer` | token | transfer() deducts sender, credits receiver correctly |
 | 9 | `test_symbol_and_decimals` | token | symbol="RWD", decimals=7 |
 
+### Frontend Tests
+
+```bash
+cd frontend
+npm run test
+```
+
+**Real test output (7/7 passing):**
+
+```
+ RUN  v4.1.10 frontend
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+```
+
+Covers `lib/contracts.ts` — the client-side accrual math (`computeAccrual`, verified against the on-chain formula at t=0, at exactly 1 year/12% APY, and against clock-skew), unit formatting (`formatXLM`/`formatRWD`), and the Stellar Expert link builders.
+
 ---
 
 ## CI/CD Pipeline
@@ -291,6 +320,8 @@ test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 | **frontend** | `npm ci` + `next lint` + `next build` (static export with testnet env vars) |
 | **integration-check** | Downloads WASM artifacts, runs `stellar contract inspect` on all 3 to verify ABI |
 | **deploy** | `cloudflare/pages-action` deploys `out/` to Cloudflare Pages (main branch only) |
+
+**Deploy job note:** it runs with `continue-on-error: true` and currently shows green only because no deploy was attempted — `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` repo secrets aren't set yet. A human needs to add those (or connect Cloudflare Pages' own Git integration) before this job does a real deploy; see the Live Demo `PENDING` note near the top of this README.
 
 ---
 
