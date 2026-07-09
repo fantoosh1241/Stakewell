@@ -136,7 +136,6 @@ export default function Home() {
 
   const stakedStroops = userData?.stakedStroops ?? 0;
   const accruedStroops = userData?.accruedStroops ?? 0;
-  const checkpointTimeSec = userData?.timestamp ?? Math.floor(Date.now() / 1000);
   const noSigner = () => Promise.reject(new Error('no signer'));
 
   return (
@@ -238,9 +237,7 @@ export default function Home() {
               <Dashboard
                 address={wallet.address}
                 stakedStroops={stakedStroops}
-                checkpointTimeSec={checkpointTimeSec}
                 accruedUnclaimedStroops={accruedStroops}
-                onChainAccrued={userData?.accruedStroops}
                 onTxStatus={setTxStatus}
                 onSuccess={handleTxSuccess}
                 signTransaction={signFn ?? noSigner}

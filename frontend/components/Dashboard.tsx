@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { STROOPS_PER_XLM, CONTRACT_STAKING, CONTRACT_REWARDS, CONTRACT_TOKEN, NETWORK_PASSPHRASE } from '@/lib/contracts';
+import { useState, useEffect } from 'react';
+import { STROOPS_PER_XLM, CONTRACT_STAKING, CONTRACT_REWARDS, CONTRACT_TOKEN, NETWORK_PASSPHRASE, computeAccrual } from '@/lib/contracts';
 import { invokeContract, addressToScVal, i128ToScVal } from '@/lib/stellar';
 import { addRwdTokenToWallet } from '@/lib/wallet';
 import type { TxStatus } from './TxToast';
@@ -9,9 +9,7 @@ import type { TxStatus } from './TxToast';
 interface DashboardProps {
   address: string;
   stakedStroops: number;
-  checkpointTimeSec: number;
   accruedUnclaimedStroops: number;
-  onChainAccrued?: number;
   onTxStatus: (status: TxStatus) => void;
   onSuccess: () => void;
   signTransaction: (xdr: string) => Promise<string>;
@@ -20,9 +18,7 @@ interface DashboardProps {
 export function Dashboard({
   address,
   stakedStroops,
-  checkpointTimeSec,
   accruedUnclaimedStroops,
-  onChainAccrued,
   onTxStatus,
   onSuccess,
   signTransaction,
@@ -31,6 +27,30 @@ export function Dashboard({
   const [claimLoading, setClaimLoading] = useState(false);
   const [unstakeLoading, setUnstakeLoading] = useState(false);
   const [addingToken, setAddingToken] = useState(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  // Timestamp (client clock) of the moment `accruedUnclaimedStroops` was last
+  // polled from the chain — `accrued_rewards()` on-chain is already a live
+  // value as of that poll, so the ticker only needs to add elapsed time since
+  // then, not since the contract's own checkpoint (that's baked in already).
+  const [polledAtMs, setPolledAtMs] = useState(() => Date.now());
+
+  useEffect(() => {
+    setPolledAtMs(Date.now());
+  }, [accruedUnclaimedStroops, stakedStroops]);
+
+  // Live rewards ticker: re-render every second so the accrued RWD figure
+  // increments smoothly between the ~7s SWR polls of the on-chain value.
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const liveAccruedStroops = computeAccrual(
+    stakedStroops,
+    polledAtMs / 1000,
+    accruedUnclaimedStroops,
+    nowMs
+  );
 
   const handleAddToken = async () => {
     if (addingToken) return;
@@ -124,8 +144,8 @@ export function Dashboard({
           </div>
           <div className="px-3 py-1 rounded-[8px] bg-page border border-border">
             <div className="text-[11px] uppercase tracking-wide font-bold text-content-muted">Accrued</div>
-            <div className="text-[15px] font-bold text-brand-indigo">
-              {accruedUnclaimedStroops ? (accruedUnclaimedStroops / 1e7).toFixed(4) : '0.0000'} RWD
+            <div className="text-[15px] font-bold text-brand-indigo tabular-nums">
+              {(liveAccruedStroops / 1e7).toFixed(4)} RWD
             </div>
           </div>
         </div>
