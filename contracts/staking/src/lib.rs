@@ -1,8 +1,8 @@
 #![no_std]
 
 use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, token::Client as TokenClient,
-    Address, Env, Vec,
+    contract, contractimpl, contracttype, symbol_short, token::Client as TokenClient, Address, Env,
+    Vec,
 };
 
 #[contracttype]
@@ -48,9 +48,7 @@ fn add_staker(env: &Env, user: &Address) {
         .unwrap_or_else(|| Vec::new(env));
     if !stakers.contains(user) {
         stakers.push_back(user.clone());
-        env.storage()
-            .persistent()
-            .set(&DataKey::Stakers, &stakers);
+        env.storage().persistent().set(&DataKey::Stakers, &stakers);
     }
 }
 
@@ -82,9 +80,7 @@ impl StakingContract {
                 xlm_token,
             },
         );
-        env.storage()
-            .instance()
-            .set(&DataKey::Initialized, &true);
+        env.storage().instance().set(&DataKey::Initialized, &true);
         env.storage()
             .persistent()
             .set(&DataKey::Stakers, &Vec::<Address>::new(&env));
@@ -108,14 +104,11 @@ impl StakingContract {
         add_staker(&env, &user);
 
         // Headline inter-contract call: Staking → Rewards
-        let rewards_client =
-            rewards_contract::Client::new(&env, &config.rewards_contract);
+        let rewards_client = rewards_contract::Client::new(&env, &config.rewards_contract);
         rewards_client.register_stake(&user, &new_principal);
 
-        env.events().publish(
-            (symbol_short!("staked"),),
-            (user, amount, new_principal),
-        );
+        env.events()
+            .publish((symbol_short!("staked"),), (user, amount, new_principal));
     }
 
     /// Unstake `amount` XLM stroops from the pool.
@@ -135,8 +128,7 @@ impl StakingContract {
         let new_principal = current_principal - amount;
 
         // Settle accrual BEFORE reducing principal — Staking → Rewards
-        let rewards_client =
-            rewards_contract::Client::new(&env, &config.rewards_contract);
+        let rewards_client = rewards_contract::Client::new(&env, &config.rewards_contract);
         rewards_client.register_stake(&user, &new_principal);
 
         // Transfer XLM back to user via SAC
@@ -145,10 +137,8 @@ impl StakingContract {
 
         set_principal(&env, &user, new_principal);
 
-        env.events().publish(
-            (symbol_short!("unstaked"),),
-            (user, amount, new_principal),
-        );
+        env.events()
+            .publish((symbol_short!("unstaked"),), (user, amount, new_principal));
     }
 
     pub fn get_staked(env: Env, user: Address) -> i128 {

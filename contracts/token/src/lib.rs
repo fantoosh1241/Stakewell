@@ -1,8 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, Address, Env, String,
-};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, String};
 
 #[contracttype]
 pub enum DataKey {
@@ -41,9 +39,7 @@ impl TokenContract {
         env.storage()
             .instance()
             .set(&DataKey::MintAuthority, &mint_authority);
-        env.storage()
-            .instance()
-            .set(&DataKey::Initialized, &true);
+        env.storage().instance().set(&DataKey::Initialized, &true);
     }
 
     /// Mint `amount` RWD tokens to `to`.
@@ -61,10 +57,7 @@ impl TokenContract {
         let current = get_balance(&env, &to);
         set_balance(&env, &to, current + amount);
 
-        env.events().publish(
-            (symbol_short!("mint"),),
-            (to, amount),
-        );
+        env.events().publish((symbol_short!("mint"),), (to, amount));
     }
 
     /// Transfer `amount` RWD tokens from `from` to `to`.
@@ -77,10 +70,8 @@ impl TokenContract {
         let to_balance = get_balance(&env, &to);
         set_balance(&env, &to, to_balance + amount);
 
-        env.events().publish(
-            (symbol_short!("transfer"),),
-            (from, to, amount),
-        );
+        env.events()
+            .publish((symbol_short!("transfer"),), (from, to, amount));
     }
 
     /// Returns the RWD balance of `addr`.

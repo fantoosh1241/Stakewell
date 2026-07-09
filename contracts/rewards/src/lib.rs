@@ -1,8 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, Address, Env,
-};
+use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env};
 
 /// Seconds in a year (non-leap).
 const SECONDS_PER_YEAR: u64 = 31_536_000;
@@ -60,9 +58,7 @@ fn get_config(env: &Env) -> Config {
 
 // Import token contract WASM for inter-contract calls (Rewards → Token)
 mod token_contract {
-    soroban_sdk::contractimport!(
-        file = "../../target/wasm32v1-none/release/stakewell_token.wasm"
-    );
+    soroban_sdk::contractimport!(file = "../../target/wasm32v1-none/release/stakewell_token.wasm");
 }
 
 #[contract]
@@ -89,9 +85,7 @@ impl RewardsContract {
         env.storage()
             .instance()
             .set(&DataKey::StakingContract, &staking_contract);
-        env.storage()
-            .instance()
-            .set(&DataKey::Initialized, &true);
+        env.storage().instance().set(&DataKey::Initialized, &true);
     }
 
     /// Called by the Staking contract whenever a user's principal changes.
@@ -150,10 +144,8 @@ impl RewardsContract {
         let token_client = token_contract::Client::new(&env, &config.token_address);
         token_client.mint(&user, &total);
 
-        env.events().publish(
-            (symbol_short!("rwdclaim"),),
-            (user, total),
-        );
+        env.events()
+            .publish((symbol_short!("rwdclaim"),), (user, total));
 
         total
     }
