@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #F6F7FB;
+  color: #14152B;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F2F4F7;
+}
+::-webkit-scrollbar-thumb {
+  background: #E7E9F3;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C3C6D4;
+}
+
+::selection {
+  background: #EEF0FF;
+  color: #5A6ACF;
+}
+
+.gradient-card-indigo-violet {
+  background: linear-gradient(135deg, #5A6ACF 0%, #8B5CF6 100%);
+  color: white;
+}
+
+.shadow-gradient-indigo {
+  box-shadow: 0 8px 24px rgba(91,92,210,.18);
+}
+
+.shadow-card {
+  box-shadow: 0 1px 3px rgba(20,21,43,.05), 0 1px 2px rgba(20,21,43,.03);
+}
+
+.shadow-tooltip {
+  box-shadow: 0 8px 20px rgba(0,0,0,.25);
+}
