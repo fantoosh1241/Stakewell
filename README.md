@@ -170,19 +170,13 @@ Three distinct, clearly differentiated error states are handled:
 
 ## Screenshots
 
-| Wallet not connected (desktop) | Mobile responsive (375px) |
-|---|---|
-| ![Dashboard, wallet disconnected](docs/screenshots/dashboard-desktop.png) | ![Mobile dashboard](docs/screenshots/dashboard-mobile-375px.png) |
+| Dashboard | Details | Mobile |
+|---|---|---|
+| ![Screenshot 1](ss/Snapzy_2026-07-10_00-48-57_071.png) | ![Screenshot 2](ss/Snapzy_2026-07-10_00-49-32_926.png) | ![Screenshot 3](ss/Snapzy_2026-07-10_00-49-52_612.png) |
 
-| CI/CD pipeline (real, green run) | Test output (real, local run) |
-|---|---|
-| ![CI pipeline passing](docs/screenshots/ci-pipeline-passing.png) | ![Test output](docs/screenshots/test-output.png) |
+**Demo Video:**
 
-CI screenshot is [run #3 on `main`](https://github.com/fantoosh1241/Stakewell/actions/runs/29043404392) — all 4 jobs green. The dashboard screenshots are captured from a real, locally running instance of this app (`npm run dev`) wired to the deployed testnet contracts above.
-
-**Demo Video (1–2 min):** PENDING — screen recording must be done by a human; an agent cannot produce one.
-
-**Still needed (manual, post-agent):** wallet-connected state and a live stake/claim/unstake flow screenshot — both require an actual Freighter-signed testnet transaction from a human's wallet, which an agent cannot do.
+![Demo Video](ss/Snapzy_Recording_2026-07-11_12-26-09.gif)
 
 ---
 
@@ -312,16 +306,13 @@ Covers `lib/contracts.ts` — the client-side accrual math (`computeAccrual`, ve
 
 ## CI/CD Pipeline
 
-`.github/workflows/ci.yml` — 4 jobs running on every push/PR to main:
+`.github/workflows/ci.yml` — 3 jobs running on every push/PR to main:
 
 | Job | What it does |
 |-----|-------------|
 | **contracts** | `cargo test --workspace` + `stellar contract build` for all 3 contracts, uploads WASM artifacts |
 | **frontend** | `npm ci` + `next lint` + `next build` (static export with testnet env vars) |
 | **integration-check** | Downloads WASM artifacts, runs `stellar contract inspect` on all 3 to verify ABI |
-| **deploy** | `cloudflare/pages-action` deploys `out/` to Cloudflare Pages (main branch only) |
-
-**Deploy job note:** it runs with `continue-on-error: true` and currently shows green only because no deploy was attempted — `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` repo secrets aren't set yet. A human needs to add those (or connect Cloudflare Pages' own Git integration) before this job does a real deploy; see the Live Demo `PENDING` note near the top of this README.
 
 ---
 
