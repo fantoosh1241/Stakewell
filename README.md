@@ -174,6 +174,12 @@ Three distinct, clearly differentiated error states are handled:
 |---|---|---|
 | ![Screenshot 1](ss/Snapzy_2026-07-10_00-48-57_071.png) | ![Screenshot 2](ss/Snapzy_2026-07-10_00-49-32_926.png) | ![Screenshot 3](ss/Snapzy_2026-07-10_00-49-52_612.png) |
 
+| CI/CD pipeline (real, green run) | Test output (real, local run) |
+|---|---|
+| ![CI pipeline passing](docs/screenshots/ci-pipeline-passing.png) | ![Test output](docs/screenshots/test-output.png) |
+
+CI screenshot is [run #3 on `main`](https://github.com/fantoosh1241/Stakewell/actions/runs/29043404392) — all 4 jobs green. The dashboard screenshots are captured from a real, locally running instance of this app (`npm run dev`) wired to the deployed testnet contracts above.
+
 **Demo Video:**
 
 ![Demo Video](ss/Snapzy_Recording_2026-07-11_12-26-09.gif)
