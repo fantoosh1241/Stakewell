@@ -4,7 +4,7 @@
 ![Stellar Testnet](https://img.shields.io/badge/Stellar-Testnet-blue?logo=stellar)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-**Live Demo:** PENDING — Cloudflare Pages deploy requires a human to authenticate (`CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` repo secrets or the dashboard Git integration); not something an agent can provision. Runs correctly locally (`npm run dev`) against the deployed testnet contracts below.
+**Live Demo:** https://stakewell.lash-grub-atlas.workers.dev/
 
 
 > Stake native XLM on Stellar Soroban. Watch your RWD rewards accrue in real time at 12% APY. Claim or unstake at any time. Three real on-chain smart contracts. No stubs, no simulations.
